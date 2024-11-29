@@ -33,3 +33,18 @@ export interface AnalysisResult {
     confidence: number;
   };
 }
+
+export type APIProvider = 'azure' | 'xai';
+
+export interface APIConfig {
+  provider: APIProvider;
+  azure?: {
+    endpoint: string;
+    apiKey: string;
+    deploymentName: string;
+  };
+  xai?: {
+    apiKey: string;
+    model: string;
+  };
+}

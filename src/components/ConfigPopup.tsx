@@ -1,24 +1,28 @@
 import React, { useState } from 'react';
 import { Settings, X } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import { APIProvider } from '../types/chat';
 
 interface ConfigPopupProps {
   isOpen: boolean;
   onClose: () => void;
   currentPrompt: string;
-  onSave: (prompt: string) => void;
+  currentProvider: APIProvider;
+  onSave: (prompt: string, provider: APIProvider) => void;
 }
 
 export const ConfigPopup: React.FC<ConfigPopupProps> = ({
   isOpen,
   onClose,
   currentPrompt,
+  currentProvider,
   onSave,
 }) => {
   const [prompt, setPrompt] = useState(currentPrompt);
+  const [provider, setProvider] = useState<APIProvider>(currentProvider);
 
   const handleSave = () => {
-    onSave(prompt);
+    onSave(prompt, provider);
     onClose();
   };
 
@@ -45,6 +49,24 @@ export const ConfigPopup: React.FC<ConfigPopupProps> = ({
         <div className="grid grid-cols-2 gap-6 p-4">
           {/* Left Panel - Editor */}
           <div>
+            {/* Provider Selection */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                API Provider
+              </label>
+              <select
+                value={provider}
+                onChange={(e) => setProvider(e.target.value as APIProvider)}
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              >
+                <option value="azure">Azure OpenAI</option>
+                <option value="xai">X.AI (Grok)</option>
+              </select>
+              <p className="mt-1 text-xs text-gray-500">
+                Select the AI provider for image analysis
+              </p>
+            </div>
+
             <div className="mb-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Extraction Prompt
@@ -52,7 +74,7 @@ export const ConfigPopup: React.FC<ConfigPopupProps> = ({
               <textarea
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
-                className="w-full h-[calc(100vh-320px)] min-h-[300px] px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none font-mono text-sm"
+                className="w-full h-[calc(100vh-400px)] min-h-[300px] px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none font-mono text-sm"
                 placeholder="Enter extraction prompt..."
               />
             </div>
@@ -68,7 +90,7 @@ export const ConfigPopup: React.FC<ConfigPopupProps> = ({
                 Preview
               </label>
             </div>
-            <div className="border rounded-lg p-4 h-[calc(100vh-320px)] min-h-[300px] overflow-auto bg-gray-50">
+            <div className="border rounded-lg p-4 h-[calc(100vh-400px)] min-h-[300px] overflow-auto bg-gray-50">
               <ReactMarkdown 
                 className="prose prose-sm max-w-none"
                 components={{

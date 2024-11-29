@@ -5,8 +5,8 @@ import { ImageAnalysis } from './components/ImageAnalysis';
 import { ConfigPopup } from './components/ConfigPopup';
 import { UsageStats } from './components/UsageStats';
 import { Snow } from './components/Snow';
-import { analyzeImage, verifyExtraction } from './services/api';
-import { AnalysisResult } from './types/chat';
+import { analyzeImage, verifyExtraction, setAPIProvider } from './services/api';
+import { AnalysisResult, APIProvider } from './types/chat';
 import { ImageAnalysisRecord } from './services/supabase';
 
 const DEFAULT_PROMPT = "Identify the type of document and extract the data. For Chinese text, provide detailed extraction including characters and their meanings.";
@@ -21,6 +21,7 @@ function App() {
   });
   const [isConfigOpen, setIsConfigOpen] = useState(false);
   const [extractionPrompt, setExtractionPrompt] = useState(DEFAULT_PROMPT);
+  const [provider, setProvider] = useState<APIProvider>('azure');
 
   const handleImageSelect = async (base64Image: string) => {
     const startTime = Date.now();
@@ -82,6 +83,14 @@ function App() {
     handleImageSelect(record.image_url);
   };
 
+  const handleConfigSave = (prompt: string, newProvider: APIProvider) => {
+    setExtractionPrompt(prompt);
+    if (newProvider !== provider) {
+      setProvider(newProvider);
+      setAPIProvider(newProvider);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-50 via-green-50 to-red-50 py-6 relative">
       <Snow />
@@ -133,7 +142,8 @@ function App() {
           isOpen={isConfigOpen}
           onClose={() => setIsConfigOpen(false)}
           currentPrompt={extractionPrompt}
-          onSave={setExtractionPrompt}
+          currentProvider={provider}
+          onSave={handleConfigSave}
         />
       </div>
       
