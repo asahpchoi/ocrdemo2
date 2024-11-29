@@ -7,6 +7,7 @@ import { UsageStats } from './components/UsageStats';
 import { Snow } from './components/Snow';
 import { analyzeImage, verifyExtraction } from './services/api';
 import { AnalysisResult } from './types/chat';
+import { ImageAnalysisRecord } from './services/supabase';
 
 const DEFAULT_PROMPT = "Identify the type of document and extract the data. For Chinese text, provide detailed extraction including characters and their meanings.";
 
@@ -74,6 +75,13 @@ function App() {
     }
   };
 
+  const handleHistorySelect = (record: ImageAnalysisRecord) => {
+    // Update the selected image
+    setSelectedImage(record.image_url);
+    // Trigger new analysis for the historical image
+    handleImageSelect(record.image_url);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-50 via-green-50 to-red-50 py-6 relative">
       <Snow />
@@ -109,6 +117,8 @@ function App() {
             <ImageAnalysis
               imageUrl={selectedImage}
               analysis={analysis}
+              onLoadRecord={handleHistorySelect}
+              onTriggerExtraction={handleImageSelect}
             />
             <UsageStats
               startTime={analysis.startTime}

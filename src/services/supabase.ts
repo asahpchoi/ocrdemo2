@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.VITE_SUPABASE_URL || '';
-const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || '';
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
 export const supabase = createClient(supabaseUrl, supabaseKey);
 
@@ -14,25 +14,43 @@ export interface ImageAnalysisRecord {
 }
 
 export const saveImageAnalysis = async (data: Omit<ImageAnalysisRecord, 'id' | 'created_at'>) => {
-    console.log({
-        data
-    })
-  const { data: result, error } = await supabase
-    .from('image_analyses')
-    .insert([data])
-    .select()
-    .single();
+  try {
+    console.log('Saving analysis:', data);
+    
+    const { data: result, error } = await supabase
+      .from('image_analyses')
+      .insert([data])
+      .select()
+      .single();
 
-  if (error) throw error;
-  return result;
+    if (error) {
+      console.error('Supabase error:', error);
+      throw error;
+    }
+
+    console.log('Save successful:', result);
+    return result;
+  } catch (error) {
+    console.error('Detailed error:', error);
+    throw error;
+  }
 };
 
-export const getImageAnalyses = async () => {
-  const { data, error } = await supabase
-    .from('image_analyses')
-    .select('*')
-    .order('created_at', { ascending: false });
+export const getImageAnalyses = async (): Promise<ImageAnalysisRecord[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('image_analyses')
+      .select('*')
+      .order('created_at', { ascending: false });
 
-  if (error) throw error;
-  return data;
+    if (error) {
+      console.error('Failed to fetch analyses:', error);
+      throw error;
+    }
+
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching analyses:', error);
+    throw error;
+  }
 };
