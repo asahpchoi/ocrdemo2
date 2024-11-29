@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@keyframes snowfall {
+  0% {
+    transform: translateY(-20px) rotate(0deg);
+  }
+  100% {
+    transform: translateY(100vh) rotate(360deg);
+  }
+}
+
+.animate-snowfall {
+  animation: snowfall linear infinite;
+}
+
+.snowflake-1 {
+  animation-duration: 5s;
+}
+
+.snowflake-2 {
+  animation-duration: 7s;
+}
+
+.snowflake-3 {
+  animation-duration: 6s;
+}
