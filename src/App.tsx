@@ -9,23 +9,30 @@ import { analyzeImage, verifyExtraction, setAPIProvider } from './services/api';
 import { AnalysisResult, APIProvider } from './types/chat';
 import { ImageAnalysisRecord } from './services/supabase';
 
+// Default prompt for image analysis
 const DEFAULT_PROMPT = "Identify the type of document and extract the data. For Chinese text, provide detailed extraction including characters and their meanings.";
 
 function App() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  // State to store the analysis result, including loading state and error handling
   const [analysis, setAnalysis] = useState<AnalysisResult>({
     description: '',
     isLoading: false,
     startTime: undefined,
     endTime: undefined
   });
+  // State to control the visibility of the configuration popup
   const [isConfigOpen, setIsConfigOpen] = useState(false);
+  // State to store the current extraction prompt
   const [extractionPrompt, setExtractionPrompt] = useState(DEFAULT_PROMPT);
+  // State to store the currently selected API provider
   const [provider, setProvider] = useState<APIProvider>('azure');
 
+  // Handles image selection and triggers the image analysis process
   const handleImageSelect = async (base64Image: string) => {
     const startTime = Date.now();
     setSelectedImage(base64Image);
+    // Set loading state to true and clear previous analysis results
     setAnalysis({ 
       description: '', 
       isLoading: true,
@@ -35,11 +42,11 @@ function App() {
     });
 
     try {
-      // Initial extraction
+      // Call the analyzeImage function to perform OCR and extraction
       const response = await analyzeImage(base64Image, extractionPrompt);
       const extractedText = response.choices[0].message.content;
 
-      // Verify the extraction
+      // Call the verifyExtraction function to verify the accuracy of the extraction
       const verificationResponse = await verifyExtraction(extractedText, extractedText);
       const verificationText = verificationResponse.choices[0].message.content;
       
@@ -50,6 +57,7 @@ function App() {
       // Remove the confidence score line from the verification result
       const verificationResult = verificationText.replace(/Confidence Score:.*\n/, '').trim();
 
+      // Update the analysis state with the results, including usage statistics and verification details
       setAnalysis({
         description: extractedText,
         isLoading: false,
@@ -66,6 +74,7 @@ function App() {
         }
       });
     } catch (error) {
+      // Handle errors during the analysis process
       setAnalysis({
         description: '',
         isLoading: false,
@@ -76,6 +85,7 @@ function App() {
     }
   };
 
+  // Handles selection of a record from the analysis history
   const handleHistorySelect = (record: ImageAnalysisRecord) => {
     // Update the selected image
     setSelectedImage(record.image_url);
@@ -83,8 +93,10 @@ function App() {
     handleImageSelect(record.image_url);
   };
 
+  // Handles saving the configuration changes from the ConfigPopup
   const handleConfigSave = (prompt: string, newProvider: APIProvider) => {
     setExtractionPrompt(prompt);
+    // Update the provider if it has changed and call setAPIProvider to update the backend
     if (newProvider !== provider) {
       setProvider(newProvider);
       setAPIProvider(newProvider);

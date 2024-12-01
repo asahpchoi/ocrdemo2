@@ -20,8 +20,9 @@ export const setAPIProvider = (provider: APIProvider) => {
 };
 
 const makeAzureRequest = async (payload: any): Promise<ChatResponse> => {
+ 
   if (!apiConfig.azure) throw new Error('Azure configuration not found');
-  console.log({ payload })
+  console.log({ payload, model: "azure" })
   const { endpoint, apiKey, deploymentName } = apiConfig.azure;
   const response = await axios.post(
     `${endpoint}/openai/deployments/${deploymentName}/chat/completions?api-version=2024-02-15-preview`,
@@ -33,6 +34,7 @@ const makeAzureRequest = async (payload: any): Promise<ChatResponse> => {
       }
     }
   );
+ 
   return response.data;
 };
 
@@ -40,7 +42,7 @@ const makeXAIRequest = async (payload: any): Promise<ChatResponse> => {
   if (!apiConfig.xai) throw new Error('X.AI configuration not found');
 
   const { apiKey, model } = apiConfig.xai;
-
+  console.log({ payload, model: "xai" })
    
   const xaiPayload = {
     ...payload,
@@ -102,8 +104,7 @@ export const analyzeImage = async (imageUrl: string, prompt: string): Promise<Ch
       stream: false
     };
 
-    console.log({payload})
-
+ 
     return apiConfig.provider === 'azure'
       ? makeAzureRequest(payload)
       : makeXAIRequest(payload);
@@ -142,7 +143,7 @@ Verification Result: [Your detailed analysis of the accuracy, including any disc
       stream: false
     };
 
-    return apiConfig.provider === 'azure'
+    return apiConfig.provider !== 'azure'
       ? makeAzureRequest(payload)
       : makeXAIRequest(payload);
   } catch (error) {

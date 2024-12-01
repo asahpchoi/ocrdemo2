@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Settings, X } from 'lucide-react';
-import ReactMarkdown from 'react-markdown';
 import { APIProvider } from '../types/chat';
+import { PromptSelector } from './PromptSelector';
+import { SystemPrompt } from '../types/prompts';
 
 interface ConfigPopupProps {
   isOpen: boolean;
@@ -26,11 +27,15 @@ export const ConfigPopup: React.FC<ConfigPopupProps> = ({
     onClose();
   };
 
+  const handlePromptSelect = (selectedPrompt: SystemPrompt) => {
+    setPrompt(selectedPrompt.prompt);
+  };
+
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-5xl mx-4 relative">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-3xl mx-4 relative max-h-[90vh] overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between px-3 py-2 border-b bg-gray-50">
           <div className="flex items-center gap-1.5">
@@ -45,9 +50,16 @@ export const ConfigPopup: React.FC<ConfigPopupProps> = ({
           </button>
         </div>
 
-        {/* Content */}
-        <div className="grid grid-cols-2 gap-6 p-4">
-          {/* Left Panel - Editor */}
+        <div className="overflow-auto p-4 max-h-[calc(90vh-100px)]">
+          {/* Prompt Templates Section */}
+          <div className="mb-6">
+            <h3 className="text-sm font-medium text-gray-700 mb-2">
+              Predefined Prompt Templates
+            </h3>
+            <PromptSelector onSelect={handlePromptSelect} className="mb-4" />
+          </div>
+
+          {/* Main Content */}
           <div>
             {/* Provider Selection */}
             <div className="mb-4">
@@ -74,40 +86,9 @@ export const ConfigPopup: React.FC<ConfigPopupProps> = ({
               <textarea
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
-                className="w-full h-[calc(100vh-400px)] min-h-[300px] px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none font-mono text-sm"
+                className="w-full h-[300px] px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none font-mono text-sm"
                 placeholder="Enter extraction prompt..."
               />
-            </div>
-            <p className="text-xs text-gray-500">
-              Supports Markdown format. Preview formatted result on the right.
-            </p>
-          </div>
-
-          {/* Right Panel - Preview */}
-          <div>
-            <div className="mb-1">
-              <label className="block text-sm font-medium text-gray-700">
-                Preview
-              </label>
-            </div>
-            <div className="border rounded-lg p-4 h-[calc(100vh-400px)] min-h-[300px] overflow-auto bg-gray-50">
-              <ReactMarkdown 
-                className="prose prose-sm max-w-none"
-                components={{
-                  p: ({ children }) => <p className="mb-4 text-base">{children}</p>,
-                  h1: ({ children }) => <h1 className="text-2xl font-bold mb-4">{children}</h1>,
-                  h2: ({ children }) => <h2 className="text-xl font-bold mb-3">{children}</h2>,
-                  h3: ({ children }) => <h3 className="text-lg font-semibold mb-2">{children}</h3>,
-                  ul: ({ children }) => <ul className="list-disc list-inside mb-4">{children}</ul>,
-                  ol: ({ children }) => <ol className="list-decimal list-inside mb-4">{children}</ol>,
-                  li: ({ children }) => <li className="mb-1">{children}</li>,
-                  code: ({ children }) => <code className="bg-gray-100 px-1 rounded">{children}</code>,
-                  pre: ({ children }) => <pre className="bg-gray-100 p-2 rounded mb-4 overflow-auto">{children}</pre>,
-                  blockquote: ({ children }) => <blockquote className="border-l-4 border-gray-200 pl-4 italic mb-4">{children}</blockquote>,
-                }}
-              >
-                {prompt}
-              </ReactMarkdown>
             </div>
           </div>
         </div>
