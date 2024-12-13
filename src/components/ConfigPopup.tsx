@@ -9,7 +9,7 @@ interface ConfigPopupProps {
   onClose: () => void;
   currentPrompt: string;
   currentProvider: APIProvider;
-  onSave: (prompt: string, provider: APIProvider) => void;
+  onSave: (prompt: string, provider: APIProvider, enableVerification: boolean) => void;
 }
 
 export const ConfigPopup: React.FC<ConfigPopupProps> = ({
@@ -21,9 +21,10 @@ export const ConfigPopup: React.FC<ConfigPopupProps> = ({
 }) => {
   const [prompt, setPrompt] = useState(currentPrompt);
   const [provider, setProvider] = useState<APIProvider>(currentProvider);
+  const [enableVerification, setEnableVerification] = useState(true);
 
   const handleSave = () => {
-    onSave(prompt, provider);
+    onSave(prompt, provider, enableVerification);
     onClose();
   };
 
@@ -73,10 +74,25 @@ export const ConfigPopup: React.FC<ConfigPopupProps> = ({
               >
                 <option value="azure">Azure OpenAI</option>
                 <option value="xai">X.AI (Grok)</option>
+                <option value="gemini">Gemini</option>
               </select>
               <p className="mt-1 text-xs text-gray-500">
                 Select the AI provider for image analysis
               </p>
+            </div>
+
+            {/* Verification Toggle */}
+            <div className="mb-4 flex items-center">
+              <input
+                type="checkbox"
+                id="enableVerification"
+                checked={enableVerification}
+                onChange={(e) => setEnableVerification(e.target.checked)}
+                className="mr-2 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+              <label htmlFor="enableVerification" className="text-sm font-medium text-gray-700">
+                Enable Verification Step
+              </label>
             </div>
 
             <div className="mb-2">

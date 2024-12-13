@@ -4,24 +4,28 @@ import { Loader2, Image as ImageIcon, Brain, CheckCircle2, Save, Copy, Check, Hi
 import { AnalysisResult } from '../types/chat';
 import { saveImageAnalysis, ImageAnalysisRecord } from '../services/supabase';
 import { HistoryPopup } from './HistoryPopup';
+import { verifyExtraction, analyzeImage } from '../services/api';
 
 interface ImageAnalysisProps {
   imageUrl: string;
   analysis: AnalysisResult;
   onLoadRecord?: (record: ImageAnalysisRecord) => void;
   onTriggerExtraction?: (imageUrl: string) => void;
+  enableVerification: boolean;
 }
 
 export const ImageAnalysis: React.FC<ImageAnalysisProps> = ({ 
   imageUrl, 
   analysis, 
   onLoadRecord,
-  onTriggerExtraction 
+  onTriggerExtraction,
+  enableVerification
 }) => {
   const [isSaving, setIsSaving] = React.useState(false);
   const [saveError, setSaveError] = React.useState<string | null>(null);
   const [copySuccess, setCopySuccess] = React.useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = React.useState(false);
+  const [verificationResult, setVerificationResult] = React.useState<AnalysisResult['verification']>();
 
   const handleSave = async () => {
     if (isSaving || !analysis.description) return;
@@ -75,6 +79,30 @@ export const ImageAnalysis: React.FC<ImageAnalysisProps> = ({
     }
     setIsHistoryOpen(false);
   };
+
+  React.useEffect(() => {
+    const performVerification = async () => {
+      if (enableVerification && analysis.description) {
+        try {
+          const verification = await verifyExtraction(imageUrl, analysis.description);
+          setVerificationResult({
+            result: verification.choices[0].message.content,
+            confidence: 90, // TODO: parse confidence from the response
+          });
+        } catch (error) {
+          console.error('Verification failed:', error);
+          setVerificationResult({
+            result: 'Verification failed',
+            confidence: 0,
+          });
+        }
+      } else {
+        setVerificationResult(undefined);
+      }
+    };
+
+    performVerification();
+  }, [analysis.description, enableVerification, imageUrl]);
 
   return (
     <>
@@ -152,11 +180,11 @@ export const ImageAnalysis: React.FC<ImageAnalysisProps> = ({
                 <Brain className="w-5 h-5 text-green-600" />
               </div>
               <h2 className="text-xl font-semibold text-gray-800">Analysis Result</h2>
-              {analysis.verification && (
+              {verificationResult && (
                 <div className="ml-auto flex items-center gap-2 bg-green-50 px-3 py-1 rounded-full">
                   <CheckCircle2 className="w-4 h-4 text-green-600" />
                   <span className="text-sm font-medium text-green-700">
-                    Confidence: {analysis.verification.confidence}%
+                    Confidence: {verificationResult.confidence}%
                   </span>
                 </div>
               )}
@@ -190,11 +218,11 @@ export const ImageAnalysis: React.FC<ImageAnalysisProps> = ({
                       {analysis.description}
                     </ReactMarkdown>
                   </div>
-                  {analysis.verification && (
+                  {verificationResult && (
                     <div className="mt-6 pt-6 border-t">
                       <h3 className="text-lg font-semibold text-gray-900 mb-3">Verification Result</h3>
                       <div className="prose prose-sm max-w-none">
-                        <ReactMarkdown>{analysis.verification.result}</ReactMarkdown>
+                        <ReactMarkdown>{verificationResult.result}</ReactMarkdown>
                       </div>
                     </div>
                   )}

@@ -27,6 +27,8 @@ function App() {
   const [extractionPrompt, setExtractionPrompt] = useState(DEFAULT_PROMPT);
   // State to store the currently selected API provider
   const [provider, setProvider] = useState<APIProvider>('azure');
+  // State to store the verification setting
+  const [enableVerification, setEnableVerification] = useState(true);
 
   // Handles image selection and triggers the image analysis process
   const handleImageSelect = async (base64Image: string) => {
@@ -45,18 +47,32 @@ function App() {
       // Call the analyzeImage function to perform OCR and extraction
       const response = await analyzeImage(base64Image, extractionPrompt);
       const extractedText = response.choices[0].message.content;
+      let verificationResult = "";
+      let confidence = 0;
+      let verificationUsage = {
+        prompt_tokens: 0,
+        completion_tokens: 0,
+        total_tokens: 0
+      };
 
-      // Call the verifyExtraction function to verify the accuracy of the extraction
-      const verificationResponse = await verifyExtraction(extractedText, extractedText);
-      const verificationText = verificationResponse.choices[0].message.content;
+      if (enableVerification) {
+        // Call the verifyExtraction function to verify the accuracy of the extraction
+        const verificationResponse = await verifyExtraction(extractedText, extractedText);
+        const verificationText = verificationResponse.choices[0].message.content;
+        
+        // Parse confidence score from verification response
+        const confidenceMatch = verificationText.match(/Confidence Score: (\d+)/);
+        confidence = confidenceMatch ? parseInt(confidenceMatch[1]) : 0;
+        
+        // Remove the confidence score line from the verification result
+        verificationResult = verificationText.replace(/Confidence Score:.*\n/, '').trim();
+        verificationUsage = {
+          prompt_tokens: verificationResponse.usage?.prompt_tokens || 0,
+          completion_tokens: verificationResponse.usage?.completion_tokens || 0,
+          total_tokens: verificationResponse.usage?.total_tokens || 0
+        };
+      }
       
-      // Parse confidence score from verification response
-      const confidenceMatch = verificationText.match(/Confidence Score: (\d+)/);
-      const confidence = confidenceMatch ? parseInt(confidenceMatch[1]) : 0;
-      
-      // Remove the confidence score line from the verification result
-      const verificationResult = verificationText.replace(/Confidence Score:.*\n/, '').trim();
-
       // Update the analysis state with the results, including usage statistics and verification details
       setAnalysis({
         description: extractedText,
@@ -66,7 +82,7 @@ function App() {
         usage: {
           prompt_tokens: response.usage?.prompt_tokens || 0,
           completion_tokens: response.usage?.completion_tokens || 0,
-          total_tokens: (response.usage?.total_tokens || 0) + (verificationResponse.usage?.total_tokens || 0)
+          total_tokens: (response.usage?.total_tokens || 0) + verificationUsage.total_tokens
         },
         verification: {
           result: verificationResult,
@@ -94,13 +110,14 @@ function App() {
   };
 
   // Handles saving the configuration changes from the ConfigPopup
-  const handleConfigSave = (prompt: string, newProvider: APIProvider) => {
+  const handleConfigSave = (prompt: string, newProvider: APIProvider, enableVerification: boolean) => {
     setExtractionPrompt(prompt);
     // Update the provider if it has changed and call setAPIProvider to update the backend
     if (newProvider !== provider) {
       setProvider(newProvider);
       setAPIProvider(newProvider);
     }
+    setEnableVerification(enableVerification);
   };
 
   return (
@@ -140,6 +157,7 @@ function App() {
               analysis={analysis}
               onLoadRecord={handleHistorySelect}
               onTriggerExtraction={handleImageSelect}
+              enableVerification={enableVerification}
             />
             <UsageStats
               startTime={analysis.startTime}
@@ -159,19 +177,7 @@ function App() {
         />
       </div>
       
-      {/* Christmas Decorations */}
-      <div className="fixed top-0 left-0 w-32 h-32 pointer-events-none z-20">
-        <span className="absolute text-4xl" style={{ left: '20px', top: '20px' }}>🎄</span>
-      </div>
-      <div className="fixed top-0 right-0 w-32 h-32 pointer-events-none z-20">
-        <span className="absolute text-4xl" style={{ right: '20px', top: '20px' }}>🎄</span>
-      </div>
-      <div className="fixed bottom-0 left-0 w-32 h-32 pointer-events-none z-20">
-        <span className="absolute text-4xl" style={{ left: '20px', bottom: '20px' }}>🎁</span>
-      </div>
-      <div className="fixed bottom-0 right-0 w-32 h-32 pointer-events-none z-20">
-        <span className="absolute text-4xl" style={{ right: '20px', bottom: '20px' }}>🎁</span>
-      </div>
+ 
     </div>
   );
 }

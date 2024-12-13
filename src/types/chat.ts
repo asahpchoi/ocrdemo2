@@ -34,7 +34,7 @@ export interface AnalysisResult {
   };
 }
 
-export type APIProvider = 'azure' | 'xai';
+export type APIProvider = 'azure' | 'xai' | 'gemini';
 
 export interface APIConfig {
   provider: APIProvider;
@@ -44,6 +44,10 @@ export interface APIConfig {
     deploymentName: string;
   };
   xai?: {
+    apiKey: string;
+    model: string;
+  };
+  gemini?: {
     apiKey: string;
     model: string;
   };
