@@ -28,7 +28,7 @@ function App() {
   // State to store the currently selected API provider
   const [provider, setProvider] = useState<APIProvider>('azure');
   // State to store the verification setting
-  const [enableVerification, setEnableVerification] = useState(true);
+  const [enableVerification, setEnableVerification] = useState(false);
 
   // Handles image selection and triggers the image analysis process
   const handleImageSelect = async (base64Image: string) => {

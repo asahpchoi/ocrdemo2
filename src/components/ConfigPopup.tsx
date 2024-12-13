@@ -21,7 +21,7 @@ export const ConfigPopup: React.FC<ConfigPopupProps> = ({
 }) => {
   const [prompt, setPrompt] = useState(currentPrompt);
   const [provider, setProvider] = useState<APIProvider>(currentProvider);
-  const [enableVerification, setEnableVerification] = useState(true);
+  const [enableVerification, setEnableVerification] = useState(false);
 
   const handleSave = () => {
     onSave(prompt, provider, enableVerification);

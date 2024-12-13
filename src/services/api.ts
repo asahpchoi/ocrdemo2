@@ -66,14 +66,14 @@ const makeXAIRequest = async (payload: any): Promise<ChatResponse> => {
   // Destructure X.AI configuration
   const { apiKey, model } = apiConfig.xai;
   console.log({ payload, model: "xai" })
-   
+
   // Add model to the payload
   const xaiPayload = {
     ...payload,
-    model, 
+    model,
   };
 
-  console.log({xaiPayload})
+  console.log({ xaiPayload })
 
   // Make a POST request to the X.AI API
   const response = await axios.post(
@@ -103,34 +103,34 @@ const makeXAIRequest = async (payload: any): Promise<ChatResponse> => {
  * @param payload The request payload.
  * @returns A promise that resolves to the chat response.
  */
-const makeGeminiRequest = async (payload: any): Promise<ChatResponse> => {
- 
-  console.log({payload})
-  if (!apiConfig.gemini) throw new Error('Gemini configuration not found');
+const makeGeminiRequest = async (content: any): Promise<ChatResponse> => {
+  const key = "AIzaSyD5CJkVSQ2HLom4AblGQLMjnIsz4ewENiY"
+  const modelname = "gemini-2.0-flash-exp"
 
-  const { apiKey, model } = apiConfig.gemini;
-  console.log({ payload, model: "gemini-2.0-flash-exp" })
+  console.log({content})
 
-  const genAI = new GoogleGenerativeAI(apiKey);
-  const geminiModel = genAI.getGenerativeModel({ model });
-  console.log(geminiModel)
+  const genAI = new GoogleGenerativeAI(key);
+  const model = genAI.getGenerativeModel({ model: modelname });
+  const img_data = content.messages[0].content[1].image_url.url.split(";base64,")[1];
+  const mimeType = content.messages[0].content[1].image_url.url.split(";base64,")[0].replace("data:","");
+  const prompt = content.messages[0].content[0].text;
+  //console.log({img_data, prompt, mimeType})
 
-  const chat = geminiModel.startChat({
-    history: payload.messages,
-  });
+  const prompts = [{
+    inlineData: {
+      data: img_data,
+      mimeType: mimeType,
+    },
+  },prompt,]
 
-  const result = await chat.sendMessageStream(payload.messages[0].content);
-
-  let text = "";
-  for await (const chunk of result.stream) {
-    const chunkText = chunk.text();
-    text += chunkText;
-  }
-
+  const result = await model.generateContent(
+    prompts
+  )
+  const data = result.response.text();
   return {
-    choices: [{
-      message: {
-        content: text
+    "choices": [{
+      "message": {
+        content: data
       }
     }]
   };
@@ -229,7 +229,7 @@ Verification Result: [Your detailed analysis of the accuracy, including any disc
       stream: false
     };
 
-     // Make the request to the appropriate API provider
+    // Make the request to the appropriate API provider
     if (apiConfig.provider === 'azure') {
       return makeAzureRequest(payload);
     } else if (apiConfig.provider === 'xai') {
