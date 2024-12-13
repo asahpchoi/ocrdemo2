@@ -5,6 +5,8 @@ import { AnalysisResult } from '../types/chat';
 import { saveImageAnalysis, ImageAnalysisRecord } from '../services/supabase';
 import { HistoryPopup } from './HistoryPopup';
 import { verifyExtraction, analyzeImage } from '../services/api';
+import remarkGfm from "remark-gfm";
+
 
 interface ImageAnalysisProps {
   imageUrl: string;
@@ -208,6 +210,7 @@ export const ImageAnalysis: React.FC<ImageAnalysisProps> = ({
                   <div className="prose prose-sm max-w-none">
                     <ReactMarkdown 
                       className="text-gray-700 leading-relaxed [&>*:first-child]:mt-0 [&>*:last-child]:mb-0"
+                      remarkPlugins={[remarkGfm]}
                       components={{
                         p: ({ children }) => <p className="mb-4 text-base">{children}</p>,
                         h3: ({ children }) => <h3 className="text-lg font-semibold text-gray-900 mt-6 mb-3">{children}</h3>,
